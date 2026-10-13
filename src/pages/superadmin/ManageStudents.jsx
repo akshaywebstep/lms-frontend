@@ -233,12 +233,16 @@ export default function ManageStudents() {
                   <tr key={s.id} className="hover:bg-slate-50/80 transition">
                     <td className="px-5 py-3.5 font-semibold text-slate-900">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-50 font-bold text-indigo-600">
+                        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-50 font-bold text-indigo-600">
                           {resolveMediaUrl(s.avatar) ? (
-                            <img src={resolveMediaUrl(s.avatar)} alt={s.name} className="h-full w-full object-cover" />
-                          ) : (
-                            (s.name || 'S')[0]?.toUpperCase()
-                          )}
+                            <img
+                              src={resolveMediaUrl(s.avatar)}
+                              alt={s.name}
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          ) : null}
+                          <span>{(s.name || 'S')[0]?.toUpperCase()}</span>
                         </div>
                         <div>
                           <p className="font-bold text-slate-900">{s.name}</p>

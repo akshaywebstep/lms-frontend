@@ -281,12 +281,16 @@ export default function DashboardShell({
                   onClick={() => setDropdownOpen((open) => !open)}
                   className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 hover:bg-slate-50"
                 >
-                  <div className="h-8 w-8 overflow-hidden rounded-lg bg-slate-950 text-sm font-black text-white">
+                  <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-indigo-600 text-sm font-black text-white">
                     {resolveMediaUrl(user?.avatar) ? (
-                      <img src={resolveMediaUrl(user.avatar)} alt={user?.name || 'User'} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">{user?.name?.[0]?.toUpperCase() || 'U'}</div>
-                    )}
+                      <img
+                        src={resolveMediaUrl(user.avatar)}
+                        alt={user?.name || 'User'}
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : null}
+                    <span>{user?.name?.[0]?.toUpperCase() || 'U'}</span>
                   </div>
                   <span className="hidden text-sm font-bold text-slate-700 sm:inline">
                     {user?.name || 'User'}

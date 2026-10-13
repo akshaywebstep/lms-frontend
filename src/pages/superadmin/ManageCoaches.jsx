@@ -460,16 +460,16 @@ export default function ManageCoaches() {
                   <tr key={coach.id} className="hover:bg-slate-50/80 transition">
                     <td className="px-5 py-3.5 font-semibold text-slate-900">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-50 font-bold text-indigo-600">
+                        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-50 font-bold text-indigo-600">
                           {resolveMediaUrl(coach.avatar) ? (
                             <img
                               src={resolveMediaUrl(coach.avatar)}
                               alt={coach.name}
-                              className="h-full w-full object-cover"
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              className="absolute inset-0 h-full w-full object-cover"
                             />
-                          ) : (
-                            (coach.name || 'C')[0]?.toUpperCase()
-                          )}
+                          ) : null}
+                          <span>{(coach.name || 'C')[0]?.toUpperCase()}</span>
                         </div>
                         <div>
                           <p className="font-bold text-slate-900">{coach.name}</p>

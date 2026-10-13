@@ -1,16 +1,19 @@
+import { useState } from 'react'
 import { getInitials } from '../../utils/helpers'
 import './common.css'
 
 const Avatar = ({ src, name = '', size = 'md', className = '' }) => {
+  const [imgError, setImgError] = useState(false)
   const sizes = { xs: 28, sm: 36, md: 44, lg: 56, xl: 80 }
   const px = sizes[size] || 44
   const fontSize = px * 0.36
 
-  if (src) {
+  if (src && !imgError) {
     return (
       <img
         src={src}
         alt={name}
+        onError={() => setImgError(true)}
         className={[
           'avatar',
           `avatar--${size}`,
