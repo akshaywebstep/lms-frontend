@@ -1,9 +1,10 @@
 import { LOCAL_KEYS, SHARED_KEYS } from './constants'
 
+// Tab-isolated storage using sessionStorage with graceful localStorage fallback
 export const storage = {
   get: (key) => {
     try {
-      const item = localStorage.getItem(key)
+      const item = sessionStorage.getItem(key) || localStorage.getItem(key)
       return item ? JSON.parse(item) : null
     } catch {
       return null
@@ -12,6 +13,7 @@ export const storage = {
 
   set: (key, value) => {
     try {
+      sessionStorage.setItem(key, JSON.stringify(value))
       localStorage.setItem(key, JSON.stringify(value))
     } catch {
       return null
@@ -19,11 +21,17 @@ export const storage = {
   },
 
   remove: (key) => {
-    localStorage.removeItem(key)
+    try {
+      sessionStorage.removeItem(key)
+      localStorage.removeItem(key)
+    } catch {}
   },
 
   clear: () => {
-    localStorage.clear()
+    try {
+      sessionStorage.clear()
+      localStorage.clear()
+    } catch {}
   },
 }
 
@@ -35,7 +43,7 @@ export const getActiveRole = () => {
   if (path.includes('/coach')) return 'coach'
   if (path.includes('/student')) return 'student'
 
-  // If on login/public page, find whichever role is stored
+  // If on login/public page, find whichever role session is stored
   for (const r of ['superadmin', 'coach', 'student']) {
     if (storage.get(LOCAL_KEYS(r).TOKEN)) return r
   }
@@ -43,7 +51,7 @@ export const getActiveRole = () => {
 }
 
 // Role-isolated token helpers:
-// If 'role' is not passed, it automatically resolves via getActiveRole()
+// Each tab keeps its own session and each role has its own isolated key
 export const getToken = (role = getActiveRole()) => storage.get(LOCAL_KEYS(role).TOKEN)
 export const setToken = (role = getActiveRole(), token) => storage.set(LOCAL_KEYS(role).TOKEN, token)
 export const removeToken = (role = getActiveRole()) => storage.remove(LOCAL_KEYS(role).TOKEN)
