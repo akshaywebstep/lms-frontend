@@ -342,7 +342,7 @@ export default function EmailTemplates() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-1">
-                  {(tmpl.variables || []).slice(0, 3).map((v) => (
+                  {(Array.isArray(tmpl.variables) ? tmpl.variables : []).slice(0, 3).map((v) => (
                     <span
                       key={v}
                       className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600"
@@ -350,9 +350,9 @@ export default function EmailTemplates() {
                       {`{{${v}}}`}
                     </span>
                   ))}
-                  {(tmpl.variables || []).length > 3 && (
+                  {(Array.isArray(tmpl.variables) ? tmpl.variables : []).length > 3 && (
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-400">
-                      +{(tmpl.variables || []).length - 3} more
+                      +{(Array.isArray(tmpl.variables) ? tmpl.variables : []).length - 3} more
                     </span>
                   )}
                 </div>
