@@ -1,4 +1,4 @@
-﻿import { LOCAL_KEYS } from './constants'
+import { LOCAL_KEYS, SHARED_KEYS } from './constants'
 
 export const storage = {
   get: (key) => {
@@ -27,20 +27,40 @@ export const storage = {
   },
 }
 
-// Token helpers
-export const getToken = () => storage.get(LOCAL_KEYS.TOKEN)
-export const setToken = (token) => storage.set(LOCAL_KEYS.TOKEN, token)
-export const removeToken = () => storage.remove(LOCAL_KEYS.TOKEN)
+// Automatically detect active role from current URL path (/admin/*, /coach/*, /student/*)
+export const getActiveRole = () => {
+  if (typeof window === 'undefined') return 'student'
+  const path = window.location.pathname.toLowerCase()
+  if (path.includes('/admin')) return 'superadmin'
+  if (path.includes('/coach')) return 'coach'
+  if (path.includes('/student')) return 'student'
 
-export const getRefreshToken = () => storage.get(LOCAL_KEYS.REFRESH)
-export const setRefreshToken = (token) => storage.set(LOCAL_KEYS.REFRESH, token)
-
-export const getUser = () => storage.get(LOCAL_KEYS.USER)
-export const setUser = (user) => storage.set(LOCAL_KEYS.USER, user)
-export const removeUser = () => storage.remove(LOCAL_KEYS.USER)
-
-export const clearAuth = () => {
-  storage.remove(LOCAL_KEYS.TOKEN)
-  storage.remove(LOCAL_KEYS.REFRESH)
-  storage.remove(LOCAL_KEYS.USER)
+  // If on login/public page, find whichever role is stored
+  for (const r of ['superadmin', 'coach', 'student']) {
+    if (storage.get(LOCAL_KEYS(r).TOKEN)) return r
+  }
+  return 'student'
 }
+
+// Role-isolated token helpers:
+// If 'role' is not passed, it automatically resolves via getActiveRole()
+export const getToken = (role = getActiveRole()) => storage.get(LOCAL_KEYS(role).TOKEN)
+export const setToken = (role = getActiveRole(), token) => storage.set(LOCAL_KEYS(role).TOKEN, token)
+export const removeToken = (role = getActiveRole()) => storage.remove(LOCAL_KEYS(role).TOKEN)
+
+export const getRefreshToken = (role = getActiveRole()) => storage.get(LOCAL_KEYS(role).REFRESH)
+export const setRefreshToken = (role = getActiveRole(), token) => storage.set(LOCAL_KEYS(role).REFRESH, token)
+
+export const getUser = (role = getActiveRole()) => storage.get(LOCAL_KEYS(role).USER)
+export const setUser = (role = getActiveRole(), user) => storage.set(LOCAL_KEYS(role).USER, user)
+export const removeUser = (role = getActiveRole()) => storage.remove(LOCAL_KEYS(role).USER)
+
+export const clearAuth = (role = getActiveRole()) => {
+  storage.remove(LOCAL_KEYS(role).TOKEN)
+  storage.remove(LOCAL_KEYS(role).REFRESH)
+  storage.remove(LOCAL_KEYS(role).USER)
+}
+
+// Shared (non-role) helpers
+export const getTheme = () => storage.get(SHARED_KEYS.THEME)
+export const setTheme = (val) => storage.set(SHARED_KEYS.THEME, val)

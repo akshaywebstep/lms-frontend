@@ -1,44 +1,57 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import authService from '../services/authService'
 import {
-  setToken,
-  setRefreshToken,
-  setUser,
-  getUser,
-  getToken,
-  clearAuth,
+  setToken, setRefreshToken, setUser,
+  getUser, getToken, clearAuth, getActiveRole,
 } from '../utils/storage'
 import { getRoleRedirect } from '../utils/helpers'
-import { useEffect } from 'react'
 
 const AuthContext = createContext(null)
 
+// On tab load/refresh, get user corresponding to current URL/active tab role
 const getInitialUser = () => {
-  const storedUser = getUser()
-  const storedToken = getToken()
-  return storedUser && storedToken ? storedUser : null
+  const activeRole = getActiveRole()
+  const activeUser = getUser(activeRole)
+  const activeToken = getToken(activeRole)
+  if (activeUser && activeToken) return activeUser
+
+  for (const role of ['superadmin', 'coach', 'student']) {
+    const storedUser = getUser(role)
+    const storedToken = getToken(role)
+    if (storedUser && storedToken) return storedUser
+  }
+  return null
 }
 
 export const AuthProvider = ({ children }) => {
   const [user, setUserState] = useState(getInitialUser)
-  const [loading, setLoading] = useState(Boolean(getToken()))
+  const [loading, setLoading] = useState(Boolean(getInitialUser()))
+
   useEffect(() => {
-    const token = getToken()
-    if (!token) { setLoading(false); return }
+    const currentUser = getInitialUser()
+    if (!currentUser) { setLoading(false); return }
 
     authService.getMe()
-      .then((res) => { setUser(res.user); setUserState(res.user) })
-      .catch(() => { clearAuth(); setUserState(null) })
+      .then((res) => {
+        const u = res.user
+        setUser(u.role, u)
+        setUserState(u)
+      })
+      .catch(() => {
+        if (currentUser?.role) clearAuth(currentUser.role)
+        setUserState(null)
+      })
       .finally(() => setLoading(false))
   }, [])
 
   const applySession = useCallback((session) => {
-    setToken(session.accessToken)
-    setRefreshToken(session.refreshToken)
-    setUser(session.user)
-    setUserState(session.user)
-    return session.user
+    const { user: u, accessToken, refreshToken } = session
+    setToken(u.role, accessToken)
+    setRefreshToken(u.role, refreshToken)
+    setUser(u.role, u)
+    setUserState(u)
+    return u
   }, [])
 
   const login = useCallback(async (credentials) => {
@@ -52,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   }, [applySession])
 
   const updateUser = useCallback((nextUser) => {
-    setUser(nextUser)
+    if (nextUser?.role) setUser(nextUser.role, nextUser)
     setUserState(nextUser)
     return nextUser
   }, [])
@@ -61,13 +74,13 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout()
     } finally {
-      clearAuth()
+      if (user?.role) clearAuth(user.role)
       setUserState(null)
     }
-  }, [])
+  }, [user])
 
   const isRole = useCallback((role) => user?.role === role, [user])
-  const isAuthenticated = Boolean(user && getToken())
+  const isAuthenticated = Boolean(user && user.role && getToken(user.role))
 
   return (
     <AuthContext.Provider

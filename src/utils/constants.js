@@ -1,4 +1,4 @@
-﻿export const ROLES = {
+export const ROLES = {
   SUPER_ADMIN: 'superadmin',
   COACH: 'coach',
   STUDENT: 'student',
@@ -48,13 +48,18 @@ export const CONTENT_TYPE = {
   TEXT: 'text',
 }
 
-export const LOCAL_KEYS = {
-  TOKEN: 'lms_access_token',
-  REFRESH: 'lms_refresh_token',
-  USER: 'lms_user',
+// Role-isolated storage keys — prevents token sharing between admin/coach/student tabs
+export const LOCAL_KEYS = (role = 'app') => ({
+  TOKEN:   `lms_${role}_access_token`,
+  REFRESH: `lms_${role}_refresh_token`,
+  USER:    `lms_${role}_user`,
+})
+
+// Shared keys (not role-specific)
+export const SHARED_KEYS = {
   MOCK_ACCOUNTS: 'lms_mock_accounts',
-  RESET_TOKEN: 'lms_reset_token',
-  THEME: 'lms_theme',
+  RESET_TOKEN:   'lms_reset_token',
+  THEME:         'lms_theme',
 }
 
 export const PAGINATION = {
