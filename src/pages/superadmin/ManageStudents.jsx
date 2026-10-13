@@ -19,6 +19,7 @@ import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { resolveMediaUrl } from '../../utils/media'
 import LocationSelector from '../../components/common/LocationSelector'
+import Pagination from '../../components/common/Pagination'
 
 const emptyStudentForm = {
   name: '',
@@ -37,6 +38,8 @@ const emptyStudentForm = {
 export default function ManageStudents() {
   const [rows, setRows] = useState([])
   const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
+  const pageSize = 10
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -66,6 +69,16 @@ export default function ManageStudents() {
         .includes(q.toLowerCase())
     )
   }, [rows, q])
+
+  useEffect(() => {
+    setPage(1)
+  }, [q])
+
+  const totalPages = Math.ceil(filtered.length / pageSize) || 1
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filtered.slice(start, start + pageSize)
+  }, [filtered, page, pageSize])
 
   const openCreate = () => {
     setEditingStudent(null)
@@ -229,7 +242,7 @@ export default function ManageStudents() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((s) => (
+                paginatedRows.map((s) => (
                   <tr key={s.id} className="hover:bg-slate-50/80 transition">
                     <td className="px-5 py-3.5 font-semibold text-slate-900">
                       <div className="flex items-center gap-3">
@@ -297,6 +310,13 @@ export default function ManageStudents() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
       </div>
 
       {/* Create / Edit Student Modal */}

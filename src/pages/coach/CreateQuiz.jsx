@@ -138,16 +138,102 @@ export default function CreateQuiz() {
         <div className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-gray-700 shadow-sm">{questions.length} questions - {totalMarks} marks</div>
       </div>
 
-      <section className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
+      <section className="space-y-4 rounded-2xl bg-white p-5 shadow-sm text-left">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <select name="courseId" value={meta.courseId} onChange={changeMeta} className="rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"><option value="">Select course</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select>
-          <input name="title" value={meta.title} onChange={changeMeta} placeholder="Quiz title" className="rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Select Course <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="courseId"
+              value={meta.courseId}
+              onChange={changeMeta}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">Select course...</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Quiz Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="title"
+              value={meta.title}
+              onChange={changeMeta}
+              placeholder="e.g. Module 1: Comprehensive Assessment"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
         </div>
-        <textarea name="description" value={meta.description} onChange={changeMeta} rows={3} placeholder="Quiz description" className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+
+        <div>
+          <label className="mb-1 block text-xs font-bold text-slate-700">
+            Quiz Description / Instructions
+          </label>
+          <textarea
+            name="description"
+            value={meta.description}
+            onChange={changeMeta}
+            rows={3}
+            placeholder="Explain guidelines, test duration, or topics covered..."
+            className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-xs text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+          />
+        </div>
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <label className="block"><span className="mb-1 block text-xs font-black uppercase text-gray-400">Passing Score (%)</span><input name="passingScore" type="number" min="0" max="100" value={meta.passingScore} onChange={changeMeta} className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" /></label>
-          <label className="block"><span className="mb-1 block text-xs font-black uppercase text-gray-400">Drip Days</span><input name="dripDays" type="number" min="0" value={meta.dripDays} onChange={changeMeta} title="Unlock days after enrollment (0 = immediate)" className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" /></label>
-          <label className="block"><span className="mb-1 block text-xs font-black uppercase text-gray-400">Status</span><select name="status" value={meta.status} onChange={changeMeta} className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"><option value="published">Published</option><option value="draft">Draft</option></select></label>
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Passing Score (%)
+            </label>
+            <input
+              name="passingScore"
+              type="number"
+              min="0"
+              max="100"
+              value={meta.passingScore}
+              onChange={changeMeta}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+
+          <div>
+            <label
+              className="mb-1 block text-xs font-bold text-slate-700"
+              title="Unlock days after enrollment (0 = immediate)"
+            >
+              Drip Days
+            </label>
+            <input
+              name="dripDays"
+              type="number"
+              min="0"
+              value={meta.dripDays}
+              onChange={changeMeta}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Status
+            </label>
+            <select
+              name="status"
+              value={meta.status}
+              onChange={changeMeta}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
         </div>
       </section>
 

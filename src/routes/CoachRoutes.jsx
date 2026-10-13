@@ -9,9 +9,7 @@ import MyStudents        from "../pages/coach/MyStudents";
 // import CoachEarnings     from "../pages/coach/CoachEarnings";
 // import CoachSettings     from "../pages/coach/CoachSettings";
 // import ManageLessons     from "../pages/coach/ManageLessons";
-// import ManageAssignments from "../pages/coach/ManageAssignments";
 // import CreateQuiz        from "../pages/coach/CreateQuiz";
-// import PricingPlans      from "../pages/coach/PricingPlans";
 
 export default function CoachRoutes() {
   return (

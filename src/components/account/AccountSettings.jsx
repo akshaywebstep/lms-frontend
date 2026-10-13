@@ -1,45 +1,84 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, Camera, Eye, EyeOff, Lock, Save, Trash2, User, Globe, MapPin, Building2 } from 'lucide-react'
+import {
+  Bell,
+  Camera,
+  Eye,
+  EyeOff,
+  Lock,
+  Save,
+  Trash2,
+  User,
+  Shield,
+  CheckCircle2,
+  Mail,
+  Phone,
+  Briefcase,
+  GraduationCap,
+  MapPin,
+  Clock,
+  AlertCircle,
+  Sparkles,
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { formatDateTime } from '../../utils/formatters'
 import { resolveMediaUrl } from '../../utils/media'
 import LocationSelector from '../common/LocationSelector'
+import Pagination from '../common/Pagination'
 
 const tabs = [
-  { id: 'profile', label: 'Profile', icon: User },
-  { id: 'security', label: 'Security', icon: Lock },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'profile', label: 'Profile Details', icon: User, desc: 'Personal info & address' },
+  { id: 'security', label: 'Password & Security', icon: Lock, desc: 'Login credentials' },
+  { id: 'notifications', label: 'Notifications', icon: Bell, desc: 'Alerts & updates' },
 ]
 
-export default function AccountSettings({ title = 'Settings', subtitle = 'Manage your account' }) {
+export default function AccountSettings({
+  title = 'Account Settings',
+  subtitle = 'Manage your profile credentials, address details, and security preferences.',
+}) {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
-        <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+    <div className="w-full text-left space-y-6">
+      {/* Top Header Card */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
+              <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 capitalize border border-indigo-200/60">
+                {user?.role || 'User'}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+          </div>
+        </div>
+
+        {/* Navigation Tabs Bar */}
+        <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-100 pt-5">
+          {tabs.map(({ id, label, icon: Icon }) => {
+            const isActive = activeTab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${isActive
+                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+              >
+                <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400'} />
+                <span>{label}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      <div className="flex w-fit gap-2 rounded-2xl bg-white p-1.5 shadow-sm">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === id
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-gray-500 hover:text-indigo-600'
-            }`}
-          >
-            <Icon size={16} /> {label}
-          </button>
-        ))}
-      </div>
-
+      {/* Main Tab Content */}
       {activeTab === 'profile' && <ProfileTab user={user} />}
       {activeTab === 'security' && <SecurityTab />}
       {activeTab === 'notifications' && <NotificationsTab />}
@@ -151,117 +190,196 @@ function ProfileTab({ user }) {
   }
 
   return (
-    <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
-      <div className="flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-center">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-indigo-600 text-white ring-4 ring-indigo-50">
-          {preview ? (
-            <img src={preview} alt={form.name || 'Profile'} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-3xl font-black">
-              {(form.name || 'U')[0]}
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-gray-800">{form.name || user?.email}</p>
-          <p className="text-sm text-gray-500">{user?.email}</p>
-          <span className="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">
-            {user?.role}
-          </span>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {photoLocked ? (
-              <p className="rounded-lg bg-sky-50 px-3 py-2 text-xs font-bold text-sky-700">
-                Student face photo is locked. Contact support or your coach to request an update.
-              </p>
+    <div className="space-y-6 text-left">
+      {/* Avatar & Basic Identity Section */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-md ring-4 ring-indigo-50">
+            {preview ? (
+              <img
+                src={preview}
+                alt={form.name || 'Profile'}
+                className="h-full w-full object-cover"
+              />
             ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => inputRef.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  <Camera size={14} /> {preview ? 'Change Photo' : 'Add Photo'}
-                </button>
-                <button
-                  type="button"
-                  onClick={removeAvatar}
-                  disabled={!preview && !avatarFile}
-                  className="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Trash2 size={14} /> Remove
-                </button>
-                <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={chooseAvatar} />
-              </>
+              <div className="flex h-full w-full items-center justify-center text-3xl font-black tracking-wider">
+                {(form.name || 'U')[0]?.toUpperCase()}
+              </div>
             )}
+          </div>
+
+          <div className="flex-1 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-xl font-bold text-slate-900">{form.name || user?.email}</h3>
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/60 capitalize">
+                ● {user?.role || 'active'}
+              </span>
+            </div>
+            <p className="flex items-center gap-1.5 text-sm text-slate-500">
+              <Mail size={14} className="text-slate-400" />
+              {user?.email}
+            </p>
+
+            <div className="pt-2">
+              {photoLocked ? (
+                <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3.5 py-2 text-xs font-medium text-amber-800 border border-amber-200/60">
+                  <AlertCircle size={15} className="shrink-0 text-amber-600" />
+                  <span>Student face photo is locked. Contact support or your coach to request an update.</span>
+                </div>
+              ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => inputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    >
+                      <Camera size={14} className="text-slate-500" />
+                      {preview ? 'Change Photo' : 'Upload Photo'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removeAvatar}
+                      disabled={!preview && !avatarFile}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50/50 px-3.5 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100/70 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={chooseAvatar}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Full Name" name="name" value={form.name} onChange={change} />
-        <Field label="Title / Occupation" name="title" value={form.title} onChange={change} />
-        <Field label="Phone Number" name="phone" value={form.phone} onChange={change} />
-        {user?.role === 'coach' && (
-          <Field label="Expertise / Domain" name="expertise" value={form.expertise} onChange={change} />
-        )}
-        {user?.role === 'coach' && (
-          <Field label="Education / Qualification" name="education" value={form.education} onChange={change} />
-        )}
-      </div>
+      {/* Basic Profile Details */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-5">
+        <div className="border-b border-slate-100 pb-3">
+          <h4 className="text-base font-bold text-slate-900">Personal Information</h4>
+          <p className="text-xs text-slate-500">Basic details about your account identity</p>
+        </div>
 
-      {/* Dynamic Location Details (Country, State, City) */}
-      <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-        <h4 className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-600">
-          Location Details
-        </h4>
-        <LocationSelector
-          country={form.country}
-          state={form.state}
-          city={form.city}
-          onChange={handleLocationChange}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="sm:col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
-            label="Address Line"
-            name="addressLine1"
-            placeholder="Street address / House no."
-            value={form.addressLine1}
+            label="Full Name"
+            name="name"
+            icon={User}
+            placeholder="John Doe"
+            value={form.name}
             onChange={change}
           />
-        </div>
-        <div>
           <Field
-            label="Pincode / ZIP"
-            name="pincode"
-            placeholder="e.g. 110001"
-            value={form.pincode}
+            label="Title / Occupation"
+            name="title"
+            icon={Briefcase}
+            placeholder="e.g. Senior Software Architect"
+            value={form.title}
             onChange={change}
           />
+          <Field
+            label="Phone Number"
+            name="phone"
+            icon={Phone}
+            placeholder="+91 98765 43210"
+            value={form.phone}
+            onChange={change}
+          />
+
+          {user?.role === 'coach' && (
+            <>
+              <Field
+                label="Expertise / Domain"
+                name="expertise"
+                icon={Sparkles}
+                placeholder="e.g. React, Node.js, Cloud"
+                value={form.expertise}
+                onChange={change}
+              />
+              <Field
+                label="Education / Qualification"
+                name="education"
+                icon={GraduationCap}
+                placeholder="e.g. B.Tech Computer Science"
+                value={form.education}
+                onChange={change}
+              />
+            </>
+          )}
         </div>
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Bio</label>
+      {/* Dynamic Location Details */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-5">
+        <div className="border-b border-slate-100 pb-3">
+          <h4 className="text-base font-bold text-slate-900">Location & Address</h4>
+          <p className="text-xs text-slate-500">Where you are currently based</p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <LocationSelector
+            country={form.country}
+            state={form.state}
+            city={form.city}
+            onChange={handleLocationChange}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="sm:col-span-2">
+            <Field
+              label="Street Address / House No."
+              name="addressLine1"
+              icon={MapPin}
+              placeholder="e.g. 104, Tech Park Avenue"
+              value={form.addressLine1}
+              onChange={change}
+            />
+          </div>
+          <div>
+            <Field
+              label="Pincode / Postal Code"
+              name="pincode"
+              placeholder="e.g. 110001"
+              value={form.pincode}
+              onChange={change}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Bio / Summary */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-3">
+        <div className="border-b border-slate-100 pb-3">
+          <h4 className="text-base font-bold text-slate-900">About / Biography</h4>
+          <p className="text-xs text-slate-500">Brief summary displayed across the LMS</p>
+        </div>
+
         <textarea
           name="bio"
           value={form.bio}
           onChange={change}
-          rows={3}
-          placeholder="Tell something about yourself..."
-          className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          rows={4}
+          placeholder="Write a brief overview about yourself, your goals, or teaching background..."
+          className="w-full resize-none rounded-xl border border-slate-300 px-3.5 py-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
         />
       </div>
 
-      <div className="flex justify-end">
+      {/* Action Footer */}
+      <div className="flex justify-end pt-2">
         <button
+          type="button"
           onClick={save}
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.99] disabled:opacity-60"
         >
-          <Save size={16} /> {saving ? 'Saving...' : 'Save Changes'}
+          <Save size={16} />
+          {saving ? 'Saving changes...' : 'Save Changes'}
         </button>
       </div>
     </div>
@@ -295,106 +413,268 @@ function SecurityTab() {
   }
 
   const fields = [
-    { label: 'Current Password', key: 'old', name: 'oldPassword' },
-    { label: 'New Password', key: 'new', name: 'newPassword' },
-    { label: 'Confirm Password', key: 'confirm', name: 'confirmPassword' },
+    { label: 'Current Password', key: 'old', name: 'oldPassword', placeholder: 'Enter your existing password' },
+    { label: 'New Password', key: 'new', name: 'newPassword', placeholder: 'At least 8 characters' },
+    { label: 'Confirm New Password', key: 'confirm', name: 'confirmPassword', placeholder: 'Re-enter new password' },
   ]
 
   return (
-    <div className="max-w-md space-y-5 rounded-2xl bg-white p-6 shadow-sm">
-      <h3 className="font-semibold text-gray-700">Change Password</h3>
-      {fields.map(({ label, key, name }) => (
-        <div key={key}>
-          <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-          <div className="relative">
-            <input
-              name={name}
-              value={form[name]}
-              onChange={change}
-              type={show[key] ? 'text' : 'password'}
-              className="w-full rounded-lg border px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
-            <button
-              type="button"
-              onClick={() => toggle(key)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            >
-              {show[key] ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
+    <div className="space-y-6 text-left">
+      <div className="max-w-2xl rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-6">
+        <div className="border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <Shield size={18} className="text-indigo-600" />
+            <h3 className="text-lg font-bold text-slate-900">Update Password</h3>
           </div>
+          <p className="mt-1 text-xs text-slate-500">
+            Ensure your account is using a long, random password to stay secure.
+          </p>
         </div>
-      ))}
-      <button
-        onClick={submit}
-        disabled={saving}
-        className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-      >
-        <Save size={16} /> {saving ? 'Updating...' : 'Update Password'}
-      </button>
+
+        <div className="space-y-4">
+          {fields.map(({ label, key, name, placeholder }) => (
+            <div key={key}>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                {label}
+              </label>
+              <div className="relative">
+                <input
+                  name={name}
+                  value={form[name]}
+                  onChange={change}
+                  type={show[key] ? 'text' : 'password'}
+                  placeholder={placeholder}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+                />
+                <button
+                  type="button"
+                  onClick={() => toggle(key)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                >
+                  {show[key] ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 text-xs text-slate-600 space-y-1">
+          <p className="font-bold text-slate-700">Password Requirements:</p>
+          <ul className="list-disc pl-4 space-y-0.5 text-slate-500">
+            <li>Minimum 8 characters</li>
+            <li>Should not match your old password</li>
+            <li>Recommended to combine letters, numbers, and symbols</li>
+          </ul>
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={submit}
+            disabled={saving}
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
+          >
+            <Save size={16} />
+            {saving ? 'Updating password...' : 'Update Password'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
 function NotificationsTab() {
   const [items, setItems] = useState([])
+  const [page, setPage] = useState(1)
+  const pageSize = 10
   const [loading, setLoading] = useState(true)
 
+  const load = async () => {
+    try {
+      const res = await api.get('/notifications')
+      setItems(res.notifications || [])
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    let alive = true
-    const load = async () => {
-      try {
-        const res = await api.get('/notifications')
-        if (alive) setItems(res.notifications || [])
-      } catch (err) {
-        toast.error(err?.message || 'Notifications load failed')
-      } finally {
-        if (alive) setLoading(false)
-      }
-    }
     load()
-    return () => {
-      alive = false
-    }
+    const timer = setInterval(load, 5000)
+    return () => clearInterval(timer)
   }, [])
 
+  const totalPages = Math.ceil(items.length / pageSize) || 1
+  const paginatedItems = items.slice((page - 1) * pageSize, page * pageSize)
+
+  const markSingle = async (id, e) => {
+    if (e) e.stopPropagation()
+    try {
+      await api.patch(`/notifications/${id}/read`)
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, is_read: true, isRead: true } : item))
+      )
+      toast.success('Marked as read')
+    } catch {
+      toast.error('Failed to mark as read')
+    }
+  }
+
+  const markAll = async () => {
+    try {
+      await api.patch('/notifications/read-all')
+      setItems((prev) =>
+        prev.map((item) => ({ ...item, is_read: true, isRead: true }))
+      )
+      toast.success('All notifications marked as read')
+    } catch {
+      toast.error('Failed to mark all as read')
+    }
+  }
+
+  const unreadCount = items.filter((i) => !i.is_read && !i.isRead).length
+
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-      <div className="border-b px-5 py-4">
-        <h3 className="font-semibold text-gray-800">Notifications</h3>
-      </div>
-      {loading ? (
-        <p className="p-5 text-sm text-gray-500">Loading...</p>
-      ) : items.length === 0 ? (
-        <p className="p-5 text-sm text-gray-500">No notifications yet</p>
-      ) : (
-        <div className="divide-y">
-          {items.map((item) => (
-            <div key={item.id} className="p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-semibold text-gray-800">{item.title}</p>
-                  <p className="mt-1 text-sm text-gray-500">{item.message}</p>
-                </div>
-                <span className="text-xs text-gray-400">
-                  {item.created_at ? formatDateTime(item.created_at) : ''}
-                </span>
+    <div className="space-y-6 text-left">
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold text-slate-900">Activity & Alerts</h3>
+                {unreadCount > 0 && (
+                  <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-600 border border-rose-200">
+                    {unreadCount} Unread
+                  </span>
+                )}
               </div>
+              {/* <p className="mt-1 text-xs text-slate-500">
+                Live alerts updating automatically every 5 seconds
+              </p> */}
             </div>
-          ))}
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAll}
+                  className="rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition"
+                >
+                  Mark All as Read
+                </button>
+              )}
+              {items.length > 0 && (
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200">
+                  {items.length} Total
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-      )}
+
+        {loading ? (
+          <div className="p-8 text-center text-sm text-slate-500">Loading notifications...</div>
+        ) : items.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400">
+                <Bell size={22} />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-slate-700">No notifications yet</p>
+              <p className="text-xs text-slate-400">You're all caught up with your platform updates.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {paginatedItems.map((item) => {
+                const isUnread = !item.is_read && !item.isRead
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => isUnread && markSingle(item.id)}
+                    className={`p-5 transition hover:bg-slate-50/70 cursor-pointer ${isUnread ? 'bg-indigo-50/25' : ''
+                      }`}
+                  >
+                      <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div
+                        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${isUnread
+                            ? 'bg-rose-100 text-rose-600'
+                            : 'bg-indigo-50 text-indigo-600'
+                          }`}
+                      >
+                        <Bell size={15} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          {isUnread && (
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-rose-500" />
+                          )}
+                          <p
+                            className={`text-sm ${isUnread
+                                ? 'font-bold text-slate-950'
+                                : 'font-semibold text-slate-800'
+                              }`}
+                          >
+                            {item.title}
+                          </p>
+                        </div>
+                        <p className="mt-0.5 text-xs text-slate-600 leading-relaxed">
+                          {item.message}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                        <Clock size={12} />
+                        {item.created_at ? formatDateTime(item.created_at) : ''}
+                      </span>
+                      {isUnread && (
+                        <button
+                          type="button"
+                          onClick={(e) => markSingle(item.id, e)}
+                          className="rounded-lg border border-indigo-200 bg-white px-2.5 py-1 text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition shadow-xs"
+                        >
+                          Mark Read
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={items.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
+      </div>
     </div>
   )
 }
 
-function Field({ label, ...props }) {
+function Field({ label, icon: Icon, ...props }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
-      <input
-        {...props}
-        className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-      />
+    <label className="block text-left">
+      <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+        {label}
+      </span>
+      <div className="relative">
+        {Icon && (
+          <Icon
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+        )}
+        <input
+          {...props}
+          className={`w-full rounded-xl border border-slate-300 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100 ${Icon ? 'pl-10 pr-3.5' : 'px-3.5'
+            }`}
+        />
+      </div>
     </label>
   )
 }

@@ -50,7 +50,6 @@ import ManageQuizzes from '../pages/coach/ManageQuizzes'
 import CreateQuiz from '../pages/coach/CreateQuiz'
 import ManageAssignments from '../pages/coach/ManageAssignments'
 import UploadMaterials from '../pages/coach/UploadMaterials'
-import PricingPlans from '../pages/coach/PricingPlans'
 import MyStudents from '../pages/coach/MyStudents'
 import StudentProgress from '../pages/coach/StudentProgress'
 import CoachEarnings from '../pages/coach/CoachEarnings'
@@ -126,7 +125,6 @@ const router = createBrowserRouter([
           { path: '/coach/quizzes/:quizId/edit', element: <CreateQuiz /> },
           { path: '/coach/assignments', element: <ManageAssignments /> },
           { path: '/coach/upload-materials', element: <UploadMaterials /> },
-          { path: '/coach/pricing-plans', element: <PricingPlans /> },
           { path: '/coach/my-students', element: <MyStudents /> },
           { path: '/coach/students/:id/progress', element: <StudentProgress /> },
           { path: '/coach/email-templates', element: <CoachEmailTemplates /> },

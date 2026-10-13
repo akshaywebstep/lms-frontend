@@ -193,5 +193,254 @@ function LessonModal({ courses, defaultCourseId, lesson, onClose, onSaved }) {
   const config = typeConfig[form.contentType] || typeConfig.video;
   const accept = form.contentType === "video" ? "video/*" : ".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.jpeg,.png,.webp,application/pdf";
 
-  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"><div className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl bg-white shadow-xl"><div className="flex items-center justify-between border-b px-6 py-4"><div><h3 className="font-black text-gray-900">{lesson ? "Edit Lesson" : "Add Lesson"}</h3><p className="text-sm text-gray-500">{config.help}</p></div><button onClick={onClose} className="rounded-lg p-2 text-gray-400 hover:bg-gray-100"><X size={18} /></button></div><div className="space-y-4 p-6"><select name="courseId" value={form.courseId} onChange={change} className="w-full rounded-lg border px-3 py-2.5 text-sm"><option value="">Select course</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select><input name="title" value={form.title} onChange={change} placeholder="Lesson title" className="w-full rounded-lg border px-3 py-2.5 text-sm" /><textarea name="description" value={form.description || ""} onChange={change} rows={4} placeholder={form.contentType === "text" ? "Write the lesson content here..." : "Lesson summary or instructions"} className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm" /><div className="grid grid-cols-1 gap-3 sm:grid-cols-4"><select name="contentType" value={form.contentType} onChange={change} className="rounded-lg border px-3 py-2.5 text-sm"><option value="video">Video</option><option value="document">Document</option><option value="link">External Link</option><option value="text">Text Lesson</option></select><input name="durationMinutes" type="number" value={form.durationMinutes} onChange={change} placeholder="Duration" className="rounded-lg border px-3 py-2.5 text-sm" /><input name="sortOrder" type="number" value={form.sortOrder} onChange={change} placeholder="Order" className="rounded-lg border px-3 py-2.5 text-sm" /><input name="dripDays" type="number" value={form.dripDays} onChange={change} placeholder="Drip Days" title="Days after enrollment (0=immediate)" className="rounded-lg border px-3 py-2.5 text-sm" /></div>{form.contentType !== "text" && <input name="contentUrl" value={form.contentUrl || ""} onChange={change} placeholder="Paste content URL or upload file below" className="w-full rounded-lg border px-3 py-2.5 text-sm" />}{canUpload(form.contentType) && <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4 hover:border-indigo-400 hover:bg-indigo-50/40"><Upload size={20} className="text-indigo-600" /><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-slate-800">{form.contentFile ? form.contentFile.name : form.contentUrl ? "Replace uploaded lesson file" : `Upload ${config.label.toLowerCase()} file`}</span><span className="text-xs text-slate-400">{form.contentType === "video" ? "MP4, WebM, Ogg" : "PDF, DOC, PPT, ZIP, image"}</span></span><input type="file" accept={accept} className="hidden" onChange={(e) => setForm((prev) => ({ ...prev, contentFile: e.target.files?.[0] || null }))} /></label>}<div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><select name="status" value={form.status} onChange={change} className="rounded-lg border px-3 py-2.5 text-sm"><option value="published">Published</option><option value="draft">Draft</option><option value="archived">Archived</option></select><label className="flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-gray-700"><input type="checkbox" name="isPreview" checked={Boolean(form.isPreview)} onChange={change} /> Free preview</label></div></div><div className="flex gap-3 px-6 pb-5"><button onClick={onClose} className="flex-1 rounded-xl border py-2.5 text-sm text-gray-600">Cancel</button><button onClick={submit} disabled={saving} className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white disabled:opacity-60">{saving ? "Saving..." : "Save Lesson"}</button></div></div></div>;
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 sm:p-6 backdrop-blur-sm text-left">
+      <div className="flex flex-col max-h-[86vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0 bg-white">
+          <div>
+            <h3 className="font-black text-slate-900 text-lg">
+              {lesson ? "Edit Lesson" : "Add Lesson"}
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">{config.help}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Scrollable Form Body */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-6">
+          {/* Course Selector */}
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Select Course <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="courseId"
+              value={form.courseId}
+              onChange={change}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">Select course...</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Lesson Title */}
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Lesson Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="title"
+              value={form.title}
+              onChange={change}
+              placeholder="e.g. Chapter 1: Introduction & Fundamentals"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+
+          {/* Summary / Description */}
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Lesson Summary / Content
+            </label>
+            <textarea
+              name="description"
+              value={form.description || ""}
+              onChange={change}
+              rows={3}
+              placeholder={
+                form.contentType === "text"
+                  ? "Write the complete text lesson content here..."
+                  : "Provide a brief description or instructions for the student..."
+              }
+              className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-xs text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+
+          {/* Content Type, Duration, Sort Order, Drip Days */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Content Type
+              </label>
+              <select
+                name="contentType"
+                value={form.contentType}
+                onChange={change}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              >
+                <option value="video">Video</option>
+                <option value="document">Document</option>
+                <option value="link">External Link</option>
+                <option value="text">Text Lesson</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Duration (Min)
+              </label>
+              <input
+                name="durationMinutes"
+                type="number"
+                min="0"
+                value={form.durationMinutes}
+                onChange={change}
+                placeholder="Minutes"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Sort Order
+              </label>
+              <input
+                name="sortOrder"
+                type="number"
+                min="1"
+                value={form.sortOrder}
+                onChange={change}
+                placeholder="1, 2, 3..."
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+
+            <div>
+              <label
+                className="mb-1 block text-xs font-bold text-slate-700"
+                title="Unlock delay in days after enrollment"
+              >
+                Drip Days
+              </label>
+              <input
+                name="dripDays"
+                type="number"
+                min="0"
+                value={form.dripDays}
+                onChange={change}
+                placeholder="0 = Immediate"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+          </div>
+
+          {/* Content URL */}
+          {form.contentType !== "text" && (
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Content URL / Web Link
+              </label>
+              <input
+                name="contentUrl"
+                value={form.contentUrl || ""}
+                onChange={change}
+                placeholder="Paste video stream link, Vimeo/YouTube URL, or direct document URL"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-medium text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+          )}
+
+          {/* File Upload Zone */}
+          {canUpload(form.contentType) && (
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Or Upload Media File
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4 hover:border-indigo-400 hover:bg-indigo-50/40 transition">
+                <Upload size={20} className="text-indigo-600" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-bold text-slate-800">
+                    {form.contentFile
+                      ? form.contentFile.name
+                      : form.contentUrl
+                      ? "Replace uploaded lesson file"
+                      : `Upload ${config.label.toLowerCase()} file`}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {form.contentType === "video"
+                      ? "Supported formats: MP4, WebM, Ogg"
+                      : "Supported formats: PDF, DOC, PPT, ZIP, Image"}
+                  </span>
+                </span>
+                <input
+                  type="file"
+                  accept={accept}
+                  className="hidden"
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      contentFile: e.target.files?.[0] || null,
+                    }))
+                  }
+                />
+              </label>
+            </div>
+          )}
+
+          {/* Status & Free Preview */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Publish Status
+              </label>
+              <select
+                name="status"
+                value={form.status}
+                onChange={change}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              >
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Access Permission
+              </label>
+              <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-50 transition">
+                <input
+                  type="checkbox"
+                  name="isPreview"
+                  checked={Boolean(form.isPreview)}
+                  onChange={change}
+                  className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />{" "}
+                Free preview (Learners can watch without purchase)
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="flex gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4 shrink-0">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition shadow-sm"
+          >
+            {saving ? "Saving..." : "Save Lesson"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

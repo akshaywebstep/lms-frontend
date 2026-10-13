@@ -6,6 +6,7 @@ import { formatCurrency } from '../../utils/formatters'
 import { confirmDialog, selectDialog } from '../../utils/dialogs'
 import { resolveMediaUrl } from '../../utils/media'
 import LocationSelector from '../../components/common/LocationSelector'
+import Pagination from '../../components/common/Pagination'
 
 const emptyCoachForm = {
   name: '',
@@ -26,6 +27,8 @@ const emptyCoachForm = {
 export default function ManageCoaches() {
   const [rows, setRows] = useState([])
   const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
+  const pageSize = 10
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -55,6 +58,16 @@ export default function ManageCoaches() {
         .includes(q.toLowerCase())
     )
   }, [rows, q])
+
+  useEffect(() => {
+    setPage(1)
+  }, [q])
+
+  const totalPages = Math.ceil(filtered.length / pageSize) || 1
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filtered.slice(start, start + pageSize)
+  }, [filtered, page, pageSize])
 
   const openCreate = () => {
     setEditing(null)
@@ -456,7 +469,7 @@ export default function ManageCoaches() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((coach) => (
+                paginatedRows.map((coach) => (
                   <tr key={coach.id} className="hover:bg-slate-50/80 transition">
                     <td className="px-5 py-3.5 font-semibold text-slate-900">
                       <div className="flex items-center gap-3">
@@ -528,6 +541,13 @@ export default function ManageCoaches() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   )

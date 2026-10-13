@@ -72,5 +72,101 @@ function TopicModal({ lessons, topic, onClose, onSaved }) {
       setSaving(false);
     }
   };
-  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"><div className="w-full max-w-lg rounded-2xl bg-white shadow-xl"><div className="flex items-center justify-between border-b px-6 py-4"><h3 className="font-semibold text-gray-800">{topic ? "Edit Topic" : "Add Topic"}</h3><button onClick={onClose}><X size={18} /></button></div><div className="space-y-4 p-6"><select name="lessonId" value={form.lessonId} onChange={change} className="w-full rounded-lg border px-3 py-2.5 text-sm"><option value="">Select lesson</option>{lessons.map((lesson) => <option key={lesson.id} value={lesson.id}>{lesson.course?.title ? `${lesson.course.title} - ` : ""}{lesson.title}</option>)}</select><input name="title" value={form.title} onChange={change} placeholder="Topic title" className="w-full rounded-lg border px-3 py-2.5 text-sm" /><textarea name="body" value={form.body} onChange={change} rows={4} placeholder="Topic content" className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm" /><input name="sortOrder" type="number" value={form.sortOrder} onChange={change} className="w-full rounded-lg border px-3 py-2.5 text-sm" /></div><div className="flex gap-3 px-6 pb-5"><button onClick={onClose} className="flex-1 rounded-xl border py-2.5 text-sm text-gray-600">Cancel</button><button onClick={submit} disabled={saving} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white disabled:opacity-60"><Save size={15} /> {saving ? "Saving..." : "Save"}</button></div></div></div>;
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 sm:p-6 backdrop-blur-sm text-left">
+      <div className="flex flex-col max-h-[86vh] w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0 bg-white">
+          <h3 className="font-bold text-slate-900 text-base">
+            {topic ? "Edit Topic" : "Add Topic"}
+          </h3>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-4 p-6">
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Select Lesson <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="lessonId"
+              value={form.lessonId}
+              onChange={change}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">Select lesson...</option>
+              {lessons.map((lesson) => (
+                <option key={lesson.id} value={lesson.id}>
+                  {lesson.course?.title ? `${lesson.course.title} - ` : ""}
+                  {lesson.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Topic Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="title"
+              value={form.title}
+              onChange={change}
+              placeholder="e.g. Sub-concept: Props Destructuring"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Topic Notes / Explanation
+            </label>
+            <textarea
+              name="body"
+              value={form.body}
+              onChange={change}
+              rows={4}
+              placeholder="Topic explanation, notes, or bullet points..."
+              className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-xs text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Sort Order
+            </label>
+            <input
+              name="sortOrder"
+              type="number"
+              min="0"
+              value={form.sortOrder}
+              onChange={change}
+              placeholder="0"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4 shrink-0">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition shadow-sm"
+          >
+            <Save size={15} /> {saving ? "Saving..." : "Save Topic"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

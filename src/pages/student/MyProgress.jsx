@@ -1,9 +1,305 @@
-import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  TrendingUp,
+  Search,
+  BookOpen,
+  Award,
+  Clock,
+  PlayCircle,
+  CheckCircle2,
+  DollarSign,
+  GraduationCap,
+} from "lucide-react";
 import api from "../../services/api";
+import Pagination from "../../components/common/Pagination";
+import CourseMedia from "../../components/common/CourseMedia";
 
 export default function MyProgress() {
-  const [stats, setStats] = useState({}); const [courses, setCourses] = useState([]); const [loading, setLoading] = useState(true);
-  useEffect(() => { Promise.all([api.get("/student/stats"), api.get("/student/courses/enrolled")]).then(([s, c]) => { setStats(s.stats || {}); setCourses(c.courses || []); }).finally(() => setLoading(false)); }, []);
-  return <div className="space-y-6"><div><h2 className="text-2xl font-bold text-slate-900">Progress</h2><p className="text-sm text-slate-500 mt-1">Learning progress across courses</p></div><div className="grid grid-cols-3 gap-4">{[{ label: "Courses", value: stats.enrolledCourses || 0 }, { label: "Average", value: `${Math.round(stats.avgProgress || 0)}%` }, { label: "Spent", value: `?${stats.totalSpent || 0}` }].map((x) => <div key={x.label} className="bg-white rounded-2xl shadow-sm p-5"><TrendingUp className="text-sky-600" /><p className="mt-2 text-2xl font-black">{x.value}</p><p className="text-sm text-slate-500">{x.label}</p></div>)}</div><div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">{loading ? <p className="text-slate-500">Loading...</p> : courses.length === 0 ? <p className="text-slate-500">No progress yet</p> : courses.map(({ enrollment, course }) => <div key={enrollment.id}><div className="flex justify-between text-sm"><span className="font-semibold">{course.title}</span><span>{Number(enrollment.progress || 0)}%</span></div><div className="mt-2 h-2 bg-slate-100 rounded-full"><div className="h-2 bg-sky-500 rounded-full" style={{ width: `${Number(enrollment.progress || 0)}%` }} /></div></div>)}</div></div>;
+  const [stats, setStats] = useState({});
+  const [courses, setCourses] = useState([]);
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      api.get("/student/stats"),
+      api.get("/student/courses/enrolled"),
+    ])
+      .then(([s, c]) => {
+        setStats(s.stats || {});
+        setCourses(c.courses || []);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const total = courses.length;
+  const completed = courses.filter(
+    (c) => Number(c.enrollment?.progress || 0) >= 100
+  ).length;
+  const inProgress = total - completed;
+  const avgProgress = Math.round(stats.avgProgress || 0);
+
+  const filtered = useMemo(() => {
+    return courses.filter(({ enrollment, course }) => {
+      const matchSearch =
+        `${course.title} ${course.category || ""} ${course.coach?.name || ""}`
+          .toLowerCase()
+          .includes(q.toLowerCase());
+      const progress = Number(enrollment?.progress || 0);
+      const matchStatus =
+        statusFilter === "all" ||
+        (statusFilter === "completed" && progress >= 100) ||
+        (statusFilter === "inprogress" && progress < 100);
+      return matchSearch && matchStatus;
+    });
+  }, [courses, q, statusFilter]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [q, statusFilter]);
+
+  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
+
+  return (
+    <div className="space-y-6 text-left">
+      {/* Header Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+            <TrendingUp size={24} />
+          </div>
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900">Learning Progress</h1>
+            <p className="text-xs text-slate-500">
+              Detailed tracking of your study completion across all enrolled courses
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          {
+            label: "Enrolled Courses",
+            value: total,
+            icon: BookOpen,
+            color: "text-sky-600",
+            bg: "bg-sky-50",
+          },
+          {
+            label: "Average Completion",
+            value: `${avgProgress}%`,
+            icon: TrendingUp,
+            color: "text-indigo-600",
+            bg: "bg-indigo-50",
+          },
+          {
+            label: "Completed Courses",
+            value: completed,
+            icon: CheckCircle2,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+          },
+          {
+            label: "Total Spent",
+            value: `₹${stats.totalSpent || 0}`,
+            icon: DollarSign,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+          },
+        ].map((x) => {
+          const Icon = x.icon;
+          return (
+            <div
+              key={x.label}
+              className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  {x.label}
+                </span>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${x.bg} ${x.color}`}
+                >
+                  <Icon size={20} />
+                </div>
+              </div>
+              <p className="mt-3 text-2xl font-black text-slate-900">{x.value}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Search & Filter Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-xs font-bold text-slate-700 mr-2">
+            Progress Tracking:{" "}
+            <span className="text-sky-600 font-extrabold">{filtered.length} Courses</span>
+          </div>
+          <div className="flex gap-1">
+            {[
+              { id: "all", label: "All Courses" },
+              { id: "inprogress", label: "In Progress" },
+              { id: "completed", label: "Completed" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id)}
+                className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                  statusFilter === tab.id
+                    ? "bg-sky-600 text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative w-72">
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
+          <input
+            type="text"
+            placeholder="Search progress by course..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 py-1.5 pl-9 pr-3 text-xs focus:border-sky-600 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Professional Progress Table */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <tr>
+                <th className="px-5 py-3.5">Course Name</th>
+                <th className="px-5 py-3.5">Instructor</th>
+                <th className="px-5 py-3.5">Category</th>
+                <th className="px-5 py-3.5">Progress Percentage</th>
+                <th className="px-5 py-3.5">Status</th>
+                <th className="px-5 py-3.5 text-right">Resume Learning</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-sky-600 border-t-transparent" />
+                    <p className="mt-2 text-xs font-semibold">Loading progress data...</p>
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <BookOpen className="mx-auto mb-2 text-slate-300" size={32} />
+                    <p className="text-xs font-bold text-slate-700">No progress tracked</p>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Enroll in courses to start tracking progress.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                paginatedRows.map(({ enrollment, course }) => {
+                  const progress = Number(enrollment?.progress || 0);
+                  const isDone = progress >= 100;
+
+                  return (
+                    <tr key={enrollment.id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-5 py-3.5 font-semibold text-slate-900">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-900 shadow-xs">
+                            <CourseMedia course={course} compact />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900">{course.title}</p>
+                            <p className="text-[10px] text-slate-400">
+                              Enrolled ID: {enrollment.id?.slice(0, 12)}...
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-3.5 text-slate-600 font-medium">
+                        {course.coach?.name || "Platform Coach"}
+                      </td>
+
+                      <td className="px-5 py-3.5">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700">
+                          {course.category || "General"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-3.5">
+                        <div className="w-44">
+                          <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                            <span>{progress}%</span>
+                            <span className="text-slate-400 text-[10px]">
+                              {isDone ? "Completed" : "In Progress"}
+                            </span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                isDone ? "bg-emerald-500" : "bg-sky-500"
+                              }`}
+                              style={{ width: `${Math.min(100, progress)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                            isDone
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-sky-50 text-sky-700"
+                          }`}
+                        >
+                          {isDone ? <CheckCircle2 size={11} /> : <Clock size={11} />}
+                          {isDone ? "Completed" : "In Progress"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-3.5 text-right">
+                        <Link
+                          to={`/student/learn/${course.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition"
+                        >
+                          <PlayCircle size={13} />
+                          {isDone ? "Review" : "Continue"}
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
+      </div>
+    </div>
+  );
 }

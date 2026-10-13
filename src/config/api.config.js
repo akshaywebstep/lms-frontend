@@ -36,7 +36,6 @@ const API_CONFIG = {
       QUIZZES: '/coach/quizzes',
       ASSIGNMENTS: '/coach/assignments',
       MATERIALS: '/coach/materials',
-      PRICING_PLANS: '/coach/pricing-plans',
       STUDENTS: '/coach/students',
       EARNINGS: '/coach/earnings',
     },

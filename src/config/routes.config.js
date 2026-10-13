@@ -38,8 +38,6 @@ export const ROUTES = {
     MANAGE_ASSIGNMENTS: '/coach/courses/:id/assignments',
     CREATE_ASSIGNMENT: '/coach/courses/:id/assignments/create',
     UPLOAD_MATERIALS: '/coach/courses/:id/materials',
-    PRICING_PLANS: '/coach/courses/:id/pricing',
-    CREATE_PLAN: '/coach/courses/:id/pricing/create',
     MY_STUDENTS: '/coach/students',
     STUDENT_PROGRESS: '/coach/students/:id/progress',
     EARNINGS: '/coach/earnings',

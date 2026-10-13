@@ -51,7 +51,7 @@ export default function DashboardShell({
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const palette = accentClasses[accent] || accentClasses.admin
-  const unreadCount = notifications.filter((item) => !item.is_read).length
+  const unreadCount = notifications.filter((item) => !item.is_read && !item.isRead).length
 
   const handleLogout = async () => {
     await logout()
@@ -63,7 +63,38 @@ export default function DashboardShell({
       const res = await api.get('/notifications')
       setNotifications(res.notifications || [])
     } catch {
-      setNotifications([])
+      // keep current notifications on network hiccups
+    }
+  }
+
+  // 5-second automatic polling for live notifications across Admin, Coach, Student
+  useEffect(() => {
+    if (!user) return
+    loadNotifications()
+    const interval = setInterval(loadNotifications, 5000)
+    return () => clearInterval(interval)
+  }, [user])
+
+  const handleMarkAsRead = async (id, e) => {
+    if (e) e.stopPropagation()
+    try {
+      await api.patch(`/notifications/${id}/read`)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true, isRead: true } : n))
+      )
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err)
+    }
+  }
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.patch('/notifications/read-all')
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, is_read: true, isRead: true }))
+      )
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err)
     }
   }
 
@@ -182,7 +213,7 @@ export default function DashboardShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="relative z-[80] border-b border-slate-200/80 bg-white/90 px-5 py-3 backdrop-blur">
+        <header className="relative z-30 border-b border-slate-200/80 bg-white/90 px-5 py-3 backdrop-blur">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <h1 className="truncate text-lg font-black tracking-tight text-slate-950">{title}</h1>
@@ -247,28 +278,77 @@ export default function DashboardShell({
                 </button>
 
                 {notificationOpen && (
-                  <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
-                    <div className="border-b border-slate-100 px-4 py-3">
-                      <p className="text-sm font-black text-slate-800">Notifications</p>
+                  <div className="absolute right-0 z-50 mt-2 w-88 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+                    <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-black text-slate-800">Notifications</p>
+                        {unreadCount > 0 && (
+                          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-bold text-rose-600">
+                            {unreadCount} new
+                          </span>
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleMarkAllAsRead}
+                          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          Mark all as read
+                        </button>
+                      )}
                     </div>
                     {notifications.length === 0 ? (
-                      <p className="px-4 py-5 text-center text-xs font-semibold text-slate-400">No notifications yet</p>
+                      <p className="px-4 py-8 text-center text-xs font-semibold text-slate-400">
+                        No notifications yet
+                      </p>
                     ) : (
                       <div className="max-h-80 overflow-auto divide-y divide-slate-100">
-                        {notifications.slice(0, 8).map((item) => (
-                          <div key={item.id} className="px-4 py-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-slate-800">{item.title}</p>
-                                <p className="mt-1 line-clamp-2 text-xs text-slate-500">{item.message}</p>
+                        {notifications.slice(0, 15).map((item) => {
+                          const isUnread = !item.is_read && !item.isRead
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={() => isUnread && handleMarkAsRead(item.id)}
+                              className={`group px-4 py-3 transition hover:bg-slate-50 cursor-pointer ${
+                                isUnread ? 'bg-indigo-50/30' : ''
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    {isUnread && (
+                                      <span className="h-2 w-2 shrink-0 rounded-full bg-rose-500" />
+                                    )}
+                                    <p
+                                      className={`truncate text-xs ${
+                                        isUnread ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'
+                                      }`}
+                                    >
+                                      {item.title}
+                                    </p>
+                                  </div>
+                                  <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                                    {item.message}
+                                  </p>
+                                </div>
+                                {isUnread && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleMarkAsRead(item.id, e)}
+                                    title="Mark as read"
+                                    className="shrink-0 text-[11px] font-semibold text-indigo-600 hover:underline opacity-80 group-hover:opacity-100"
+                                  >
+                                    Read
+                                  </button>
+                                )}
                               </div>
-                              {!item.is_read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-rose-500" />}
+                              <p className="mt-2 text-[10px] font-medium text-slate-400">
+                                {item.created_at ? formatDateTime(item.created_at) : ''}
+                              </p>
                             </div>
-                            <p className="mt-2 text-[11px] font-semibold text-slate-400">
-                              {item.created_at ? formatDateTime(item.created_at) : ''}
-                            </p>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
                   </div>
