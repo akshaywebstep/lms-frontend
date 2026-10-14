@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Download, Paperclip, Send, Upload, Lock } from "lucide-react";
+import { ArrowLeft, Clock, Download, Paperclip, Send, Upload, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, formatUnlockTime } from "../../utils/formatters";
 import { resolveMediaUrl } from "../../utils/media";
 
 const submissionStatusLabel = (status) => {
@@ -63,10 +63,18 @@ export default function SubmitAssignment() {
   if (assignment.isLocked) return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Link to="/student/my-learning" className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700"><ArrowLeft size={16} /> Back</Link>
-      <div className="rounded-2xl border border-dashed bg-white p-10 text-center text-slate-500 shadow-sm">
-        <Lock className="mx-auto text-orange-400" size={44} />
-        <p className="mt-4 text-lg font-black text-slate-900">Assignment Locked</p>
-        <p className="mt-2 text-sm font-medium text-orange-600">This assignment unlocks on {formatDate(assignment.unlocksAt)}</p>
+      <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/40 p-10 text-center text-slate-500 shadow-sm">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 shadow-sm">
+          <Lock size={32} />
+        </div>
+        <p className="mt-4 text-xl font-black text-slate-900">Assignment Locked</p>
+        <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2 text-xs font-bold text-amber-700 shadow-sm">
+          <Clock size={15} className="text-amber-500" />
+          <span>This assignment unlocks on {formatUnlockTime(assignment.unlocksAt)}</span>
+        </div>
+        <p className="mt-3 text-xs text-slate-400">
+          This project assignment will automatically become accessible once the scheduled drip countdown completes.
+        </p>
       </div>
     </div>
   );

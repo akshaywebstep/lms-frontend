@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { BookOpen, ChevronRight, Film, ImageIcon, Info, Link as LinkIcon, Plus, Upload, X } from "lucide-react";
+import { BookOpen, ChevronRight, Film, ImageIcon, Info, Link as LinkIcon, Plus, Trash2, Upload, X } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
 import CourseMedia from "../../components/common/CourseMedia";
@@ -108,21 +108,26 @@ export default function CreateCourse() {
   const handleThumb = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setForm((p) => ({ ...p, thumbnail: file }));
+    setForm((p) => ({ ...p, thumbnail: file, removeThumbnail: false }));
     setPreview(URL.createObjectURL(file));
     if (errors.thumbnail) setErrors((p) => ({ ...p, thumbnail: "" }));
+  };
+
+  const removeThumb = () => {
+    setForm((p) => ({ ...p, thumbnail: null, removeThumbnail: true }));
+    setPreview(null);
   };
 
   const handleVideo = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setForm((p) => ({ ...p, promoVideoFile: file, promoVideo: "" }));
+    setForm((p) => ({ ...p, promoVideoFile: file, promoVideo: "", removePromoVideo: false }));
     setVideoPreview(URL.createObjectURL(file));
     if (errors.promoVideo) setErrors((p) => ({ ...p, promoVideo: "" }));
   };
 
   const removeVideo = () => {
-    setForm((p) => ({ ...p, promoVideoFile: null, promoVideo: "" }));
+    setForm((p) => ({ ...p, promoVideoFile: null, promoVideo: "", removePromoVideo: true }));
     setVideoPreview("");
   };
 
@@ -184,10 +189,14 @@ export default function CreateCourse() {
         description: sanitizeRichText(form.description),
         price: Number(form.price || 0),
         status: form.status,
-        promoVideo: uploadedVideoUrl || form.promoVideo,
+        promoVideo: uploadedVideoUrl || (form.removePromoVideo ? "" : form.promoVideo),
         requirements: form.requirements,
         outcomes: form.outcomes,
-        ...(uploadedThumbnailUrl ? { thumbnailUrl: uploadedThumbnailUrl } : {}),
+        ...(uploadedThumbnailUrl
+          ? { thumbnailUrl: uploadedThumbnailUrl }
+          : form.removeThumbnail
+          ? { thumbnailUrl: "" }
+          : {}),
       };
       if (editing) await api.put(`/coach/courses/${id}`, payload);
       else await api.post("/coach/courses", payload);
@@ -202,7 +211,6 @@ export default function CreateCourse() {
 
   if (loadingCourse) return <div className="rounded-2xl bg-white p-10 text-center text-gray-500 shadow-sm">Loading course...</div>;
 
-  const mediaPreviewCourse = { title: form.title || "Course", thumbnailUrl: preview || "", promoVideo: videoPreview || form.promoVideo };
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -228,29 +236,107 @@ export default function CreateCourse() {
         </div>
 
         <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
-          <h3 className="flex items-center gap-2 font-semibold text-gray-700"><ImageIcon size={18} className="text-indigo-500" /> Course Media</h3>
-          <div className="overflow-hidden rounded-xl border bg-slate-950 aspect-video"><CourseMedia course={mediaPreviewCourse} /></div>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <label className="block cursor-pointer rounded-xl border-2 border-dashed border-gray-300 p-5 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
-              <Upload size={28} className="mx-auto text-gray-400" />
-              <p className="mt-2 text-sm font-bold text-gray-700">Upload thumbnail</p>
-              <p className="mt-1 text-xs text-gray-400">JPG, PNG, WEBP. Used as video poster and course card image.</p>
-              <input type="file" accept="image/*" className="hidden" onChange={handleThumb} />
-            </label>
-            <label className="block cursor-pointer rounded-xl border-2 border-dashed border-gray-300 p-5 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
-              <Film size={28} className="mx-auto text-gray-400" />
-              <p className="mt-2 text-sm font-bold text-gray-700">Upload promo video</p>
-              <p className="mt-1 text-xs text-gray-400">MP4, WEBM, OGG. Backend upload limit is 100 MB.</p>
-              <input type="file" accept="video/mp4,video/webm,video/ogg,video/*" className="hidden" onChange={handleVideo} />
-            </label>
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold text-gray-700">
+              <ImageIcon size={18} className="text-indigo-500" /> Course Media
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Manage your course cover thumbnail (used in catalog and card lists) and promotional preview video.
+            </p>
           </div>
-          <div className="rounded-xl border border-slate-200 p-3">
-            <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700"><LinkIcon size={15} /> Or paste promo video URL</label>
-            <input name="promoVideo" value={form.promoVideo} onChange={change} disabled={Boolean(form.promoVideoFile)} placeholder="Direct MP4/WebM/Ogg, YouTube, or Vimeo URL" className="w-full rounded-lg border px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400" />
-            {form.promoVideoFile && <button type="button" onClick={removeVideo} className="mt-2 text-xs font-bold text-red-600">Remove uploaded video and use URL</button>}
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Thumbnail Section */}
+            <div className="flex flex-col rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                  <ImageIcon size={16} className="text-indigo-600" /> Course Thumbnail
+                </span>
+                {preview && (
+                  <button
+                    type="button"
+                    onClick={removeThumb}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 transition"
+                  >
+                    <Trash2 size={13} /> Remove
+                  </button>
+                )}
+              </div>
+
+              {preview ? (
+                <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-900 aspect-video shadow-inner">
+                  <img
+                    src={preview}
+                    alt="Course Thumbnail Preview"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                    <label className="cursor-pointer rounded-lg bg-white/90 px-3 py-1.5 text-xs font-bold text-gray-800 shadow backdrop-blur hover:bg-white transition flex items-center gap-1.5">
+                      <Upload size={13} /> Change Image
+                      <input type="file" accept="image/*" className="hidden" onChange={handleThumb} />
+                    </label>
+                  </div>
+                  <span className="absolute bottom-2 left-2 rounded-md bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
+                    Cover Preview
+                  </span>
+                </div>
+              ) : (
+                <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
+                  <Upload size={28} className="mx-auto text-gray-400" />
+                  <p className="mt-2 text-sm font-bold text-gray-700">Upload thumbnail</p>
+                  <p className="mt-1 text-xs text-gray-400">JPG, PNG, WEBP (16:9 recommended)</p>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleThumb} />
+                </label>
+              )}
+              {errors.thumbnail && <p className="mt-2 text-xs text-red-500">{errors.thumbnail}</p>}
+            </div>
+
+            {/* Promo Video Section */}
+            <div className="flex flex-col rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Film size={16} className="text-indigo-600" /> Promo Video (Optional)
+                </span>
+                {(videoPreview || form.promoVideo) && (
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 transition"
+                  >
+                    <Trash2 size={13} /> Remove
+                  </button>
+                )}
+              </div>
+
+              {(videoPreview || form.promoVideo) ? (
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 aspect-video shadow-inner">
+                  <CourseMedia course={{ title: form.title || "Preview", promoVideo: videoPreview || form.promoVideo }} />
+                </div>
+              ) : (
+                <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
+                  <Film size={28} className="mx-auto text-gray-400" />
+                  <p className="mt-2 text-sm font-bold text-gray-700">Upload promo video file</p>
+                  <p className="mt-1 text-xs text-gray-400">MP4, WEBM, OGG (Max 100 MB)</p>
+                  <input type="file" accept="video/mp4,video/webm,video/ogg,video/*" className="hidden" onChange={handleVideo} />
+                </label>
+              )}
+
+              <div className="mt-3 rounded-lg border border-slate-200 bg-white p-2.5">
+                <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                  <LinkIcon size={13} /> Or embed from YouTube / Vimeo / Direct URL
+                </label>
+                <input
+                  name="promoVideo"
+                  value={form.promoVideo}
+                  onChange={change}
+                  disabled={Boolean(form.promoVideoFile)}
+                  placeholder="e.g. https://www.youtube.com/watch?v=..."
+                  className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:bg-slate-50 disabled:text-slate-400"
+                />
+              </div>
+              {errors.promoVideo && <p className="mt-2 text-xs text-red-500">{errors.promoVideo}</p>}
+            </div>
           </div>
-          {errors.thumbnail && <p className="text-xs text-red-500">{errors.thumbnail}</p>}
-          {errors.promoVideo && <p className="text-xs text-red-500">{errors.promoVideo}</p>}
         </div>
 
         <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">

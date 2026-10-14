@@ -323,7 +323,7 @@ export default function CourseCatalog() {
                 ) : (
                   paginatedCourses.map((course) => {
                     const enrolled = Boolean(course.isEnrolled);
-                    const progress = Number(course.enrollment?.progress || 0);
+                    const progress = Number(course.progress ?? course.enrollment?.progress ?? 0);
 
                     return (
                       <tr
@@ -440,7 +440,7 @@ export default function CourseCatalog() {
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {paginatedCourses.map((course) => {
                   const enrolled = Boolean(course.isEnrolled);
-                  const progress = Number(course.enrollment?.progress || 0);
+                  const progress = Number(course.progress ?? course.enrollment?.progress ?? 0);
 
                   return (
                     <article

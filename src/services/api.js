@@ -18,7 +18,17 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    const res = response.data
+    if (res && typeof res === 'object' && res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+      Object.keys(res.data).forEach((key) => {
+        if (!(key in res)) {
+          res[key] = res.data[key]
+        }
+      })
+    }
+    return res
+  },
   async (error) => {
     const originalRequest = error.config
 

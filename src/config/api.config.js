@@ -4,13 +4,18 @@ const API_CONFIG = {
   ENDPOINTS: {
     // Auth
     AUTH: {
-      LOGIN: '/auth/login',
-      REGISTER: '/auth/register',
+      ADMIN_LOGIN: '/auth/admin/login',
+      ADMIN_ME: '/auth/admin/me',
+      COACH_LOGIN: '/auth/coach/login',
+      COACH_REGISTER: '/auth/coach/register',
+      COACH_ME: '/auth/coach/me',
+      STUDENT_LOGIN: '/auth/student/login',
+      STUDENT_REGISTER: '/auth/student/register',
+      STUDENT_ME: '/auth/student/me',
       LOGOUT: '/auth/logout',
       FORGOT_PASSWORD: '/auth/forgot-password',
       RESET_PASSWORD: '/auth/reset-password',
       VERIFY_EMAIL: '/auth/verify-email',
-      ME: '/auth/me',
       REFRESH_TOKEN: '/auth/refresh-token',
     },
     // Super Admin
@@ -25,6 +30,7 @@ const API_CONFIG = {
       UNBLOCK_USER: '/admin/users/unblock',
       REPORTS: '/admin/reports',
       SETTINGS: '/admin/settings',
+      ACTIVITY_LOGS: '/admin/activity-logs',
     },
     // Coach
     COACH: {

@@ -5,6 +5,7 @@ import {
   BookOpen,
   ClipboardList,
   DollarSign,
+  Eye,
   HelpCircle,
   PlayCircle,
   PlusCircle,
@@ -16,6 +17,7 @@ import api from "../../services/api";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import RichTextContent from "../../components/common/RichTextContent";
 import CourseMedia from "../../components/common/CourseMedia";
+import LessonPreviewModal from "../../components/common/LessonPreviewModal";
 
 const tabs = ["Overview", "Lessons", "Quizzes", "Assignments", "Students"];
 
@@ -28,6 +30,7 @@ export default function CourseDetail() {
   const [assignments, setAssignments] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [previewLesson, setPreviewLesson] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -280,13 +283,21 @@ export default function CourseDetail() {
             </Link>
           </div>
           <Table
-            headers={["Lesson Title", "Type", "Duration", "Status"]}
+            headers={["Lesson Title", "Type", "Duration", "Status", "Action"]}
             empty="No lessons created yet for this course"
             rows={lessons.map((lesson) => [
-              lesson.title,
-              <span className="capitalize">{lesson.contentType || "Video"}</span>,
-              `${lesson.durationMinutes || 0} min`,
               <span
+                key="title"
+                onClick={() => setPreviewLesson(lesson)}
+                className="font-bold text-slate-900 cursor-pointer hover:text-indigo-600 transition"
+                title="Click to preview lesson"
+              >
+                {lesson.title}
+              </span>,
+              <span key="type" className="capitalize">{lesson.contentType || "Video"}</span>,
+              <span key="dur">{`${lesson.durationMinutes || 0} min`}</span>,
+              <span
+                key="stat"
                 className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   lesson.status === "published"
                     ? "bg-emerald-50 text-emerald-700"
@@ -295,6 +306,14 @@ export default function CourseDetail() {
               >
                 {lesson.status}
               </span>,
+              <button
+                key="act"
+                type="button"
+                onClick={() => setPreviewLesson(lesson)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition shadow-sm"
+              >
+                <Eye size={12} /> Preview
+              </button>,
             ])}
           />
         </div>
@@ -401,6 +420,14 @@ export default function CourseDetail() {
             ])}
           />
         </div>
+      )}
+
+      {previewLesson && (
+        <LessonPreviewModal
+          lessonId={previewLesson.id}
+          lesson={previewLesson}
+          onClose={() => setPreviewLesson(null)}
+        />
       )}
     </div>
   );

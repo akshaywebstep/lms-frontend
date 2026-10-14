@@ -37,6 +37,7 @@ import PlatformSettings from '../pages/superadmin/PlatformSettings'
 import ManagePayments from '../pages/superadmin/ManagePayments'
 import ManageMasterData from '../pages/superadmin/ManageMasterData'
 import EmailTemplates from '../pages/superadmin/EmailTemplates'
+import ActivityLogs from '../pages/superadmin/ActivityLogs'
 
 // Coach pages
 import CoachDashboard from '../pages/coach/CoachDashboard'
@@ -44,6 +45,7 @@ import MyCourses from '../pages/coach/MyCourses'
 import CreateCourse from '../pages/coach/CreateCourse'
 import CoachCourseDetail from '../pages/coach/CourseDetail'
 import ManageLessons from '../pages/coach/ManageLessons'
+import PreviewLesson from '../pages/coach/PreviewLesson'
 import CreateLesson from '../pages/coach/CreateLesson'
 import ManageTopics from '../pages/coach/ManageTopics'
 import ManageQuizzes from '../pages/coach/ManageQuizzes'
@@ -100,6 +102,7 @@ const router = createBrowserRouter([
           { path: '/admin/payments', element: <ManagePayments /> },
           { path: '/admin/subscriptions', element: placeholder('Subscriptions') },
           { path: '/admin/reports', element: <Reports /> },
+          { path: '/admin/activity-logs', element: <ActivityLogs /> },
           { path: '/admin/settings', element: <PlatformSettings /> },
           { path: '/admin/profile', element: <AdminProfile /> },
         ],
@@ -118,6 +121,7 @@ const router = createBrowserRouter([
           { path: '/coach/course-detail/:id', element: <CoachCourseDetail /> },
           { path: '/coach/edit-course/:id', element: <CreateCourse /> },
           { path: '/coach/manage-lessons', element: <ManageLessons /> },
+          { path: '/coach/lessons/:id/preview', element: <PreviewLesson /> },
           { path: '/coach/create-lesson', element: <CreateLesson /> },
           { path: '/coach/manage-topics', element: <ManageTopics /> },
           { path: '/coach/quizzes', element: <ManageQuizzes /> },

@@ -1,32 +1,58 @@
-import API_CONFIG from '../config/api.config'
-import { getRefreshToken } from '../utils/storage'
+import { getRefreshToken, getActiveRole } from '../utils/storage'
 import api from './api'
 
-
 const authService = {
+  login: (credentials = {}) => {
+    const role = (credentials.role || '').toLowerCase()
+    if (role === 'admin' || role === 'superadmin' || role === 'super_admin') {
+      return api.post('/auth/admin/login', credentials)
+    }
+    if (role === 'coach') {
+      return api.post('/auth/coach/login', credentials)
+    }
+    return api.post('/auth/student/login', credentials)
+  },
 
-  login: (credentials) => api.post(API_CONFIG.ENDPOINTS.AUTH.LOGIN, credentials),
-
-  register: (data) => api.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, data, data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined),
+  register: (data) => {
+    let role = ''
+    if (data instanceof FormData) {
+      role = (data.get('role') || '').toLowerCase()
+    } else if (data && typeof data === 'object') {
+      role = (data.role || '').toLowerCase()
+    }
+    const isCoach = role === 'coach'
+    const endpoint = isCoach ? '/auth/coach/register' : '/auth/student/register'
+    const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+    return api.post(endpoint, data, config)
+  },
 
   logout: () =>
-    api.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT, {
+    api.post('/auth/logout', {
       refreshToken: getRefreshToken(),
     }),
 
   forgotPassword: (email) =>
-    api.post(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, { email }),
+    api.post('/auth/forgot-password', { email }),
 
   resetPassword: (token, password) =>
-    api.post(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD, { token, password }),
+    api.post('/auth/reset-password', { token, password }),
 
   verifyEmail: (token) =>
-    api.post(API_CONFIG.ENDPOINTS.AUTH.VERIFY_EMAIL, { token }),
+    api.post('/auth/verify-email', { token }),
 
-  getMe: () => api.get(API_CONFIG.ENDPOINTS.AUTH.ME),
+  getMe: () => {
+    const role = (getActiveRole() || '').toLowerCase()
+    if (role === 'admin' || role === 'superadmin' || role === 'super_admin') {
+      return api.get('/auth/admin/me')
+    }
+    if (role === 'coach') {
+      return api.get('/auth/coach/me')
+    }
+    return api.get('/auth/student/me')
+  },
 
   refreshToken: () =>
-    api.post(API_CONFIG.ENDPOINTS.AUTH.REFRESH_TOKEN, {
+    api.post('/auth/refresh-token', {
       refreshToken: getRefreshToken(),
     }),
 

@@ -36,7 +36,7 @@ const CourseDetail = () => {
 
   const outcomes = course.outcomes?.length ? course.outcomes : ['Course content and assignments will appear after enrollment']
   const enrolled = Boolean(course.isEnrolled)
-  const progress = Number(course.enrollment?.progress || 0)
+  const progress = Number(course.progress ?? course.enrollment?.progress ?? 0)
 
   return (
     <div className="space-y-6">

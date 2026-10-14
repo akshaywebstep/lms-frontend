@@ -370,7 +370,7 @@ export default function MyStudents() {
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
-                            to={`/coach/students/${student.id}/progress`}
+                            to={`/coach/students/${student.id}/progress${course.id ? `?courseId=${course.id}` : ''}`}
                             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition"
                             title="View Detailed Progress"
                           >

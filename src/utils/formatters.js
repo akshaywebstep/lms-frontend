@@ -17,8 +17,45 @@ export const formatDateTime = (date) =>
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    hour12: true,
   }).format(new Date(date))
+
+export const formatRemainingTime = (date) => {
+  if (!date) return ''
+  const diff = new Date(date).getTime() - Date.now()
+  if (diff <= 0) return 'Unlocking now'
+
+  const totalMinutes = Math.floor(diff / 60000)
+  const days = Math.floor(totalMinutes / (60 * 24))
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+  const minutes = totalMinutes % 60
+
+  if (days > 0) {
+    return hours > 0 ? `in ${days}d ${hours}h` : `in ${days}d`
+  }
+  if (hours > 0) {
+    return minutes > 0 ? `in ${hours}h ${minutes}m` : `in ${hours}h`
+  }
+  return minutes > 0 ? `in ${minutes}m` : 'in less than a minute'
+}
+
+export const formatUnlockTime = (date) => {
+  if (!date) return ''
+  const parsed = new Date(date)
+  if (isNaN(parsed.getTime())) return ''
+  const timeStr = new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(parsed)
+
+  const remaining = formatRemainingTime(date)
+  return remaining ? `${timeStr} (${remaining})` : timeStr
+}
 
 export const formatRelativeTime = (date) => {
   const diff = Date.now() - new Date(date).getTime()

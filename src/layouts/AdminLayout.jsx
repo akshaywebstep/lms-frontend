@@ -7,6 +7,7 @@ import {
   Settings,
   Tags,
   Users,
+  ScrollText,
 } from 'lucide-react'
 import DashboardShell from './DashboardShell'
 
@@ -19,6 +20,7 @@ const navItems = [
   { path: '/admin/master-data', label: 'Master Data', icon: Tags },
   { path: '/admin/payments', label: 'Payments', icon: CreditCard },
   { path: '/admin/reports', label: 'Reports', icon: BarChart3 },
+  { path: '/admin/activity-logs', label: 'Activity Logs', icon: ScrollText },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
